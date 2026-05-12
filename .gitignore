@@ -1,0 +1,6 @@
+vosk-models/
+AUDIO/temp
+*.wav
+*.onnx
+piper/
+venv/

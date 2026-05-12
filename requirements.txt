@@ -1,0 +1,11 @@
+openai-whisper
+vosk
+sounddevice
+numpy
+scipy
+ollama
+requests
+pyttsx3
+regex
+openwakeword
+onnxruntime
