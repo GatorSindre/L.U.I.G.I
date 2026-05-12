@@ -4,81 +4,29 @@ import json
 from vosk import Model, KaldiRecognizer
 import numpy as np
 from scipy.io.wavfile import write
-import os
-import time
 import ollama
 import threading
 import requests
 import sys
 import regex as re
+import traceback
 
-## .PY Imports
+print("Imports Loaded")
+
+## .py Imports
 from audio import whisper_stt
+print("whisper_stt loaded")
 from audio import piper_tts
+print("piper_tts loaded")
+from audio import recorder
+print("recorder loaded")
 
 ## Make sure console can handle emojis and such from L.U.I.G.I's responses
 sys.stdout.reconfigure(encoding='utf-8')
 
-print("Imports Loaded")
 
 ###     RECORD UNTIL SILENCE
 
-def record_until_silence(
-    filename="recording.wav",
-    samplerate=16000,
-    threshold=20,
-    silence_duration=1.0,
-    min_record_time=3.0,
-    chunk_size=1024
-):
-    # Create AUDIO folder if it doesn't exist
-    audio_folder = "AUDIO"
-    os.makedirs(audio_folder, exist_ok=True)
-
-    # Full file path
-    filepath = os.path.join(audio_folder, filename)
-
-    print("Listening...")
-
-    recording = []
-    silent_chunks = 0
-
-    start_time = time.time()
-
-    with sd.InputStream(
-        samplerate=samplerate,
-        channels=1,
-        dtype='int16'
-    ) as stream:
-
-        while True:
-            audio_chunk, overflowed = stream.read(chunk_size)
-
-            recording.append(audio_chunk)
-
-            volume = np.abs(audio_chunk).mean()
-
-            if volume < threshold:
-                silent_chunks += 1
-            else:
-                silent_chunks = 0
-
-            silence_time = (silent_chunks * chunk_size) / samplerate
-
-            if min_record_time > time.time() - start_time:
-                continue
-
-            if silence_time > silence_duration:
-                print("Silence detected, stopping.")
-                break
-
-    audio = np.concatenate(recording)
-
-    write(filepath, samplerate, audio)
-
-    print(f"Saved {filepath}")
-
-    return
 
 ###     Function to clear out characters for tts
 
@@ -211,7 +159,7 @@ def checkup():
 
 def luigi_activate():
     ## Record
-    record_until_silence()
+    recorder.start()
     ## Audio To Text
     input_text = whisper_stt.run()
     ## Talk to AI
@@ -296,6 +244,6 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"ERROR: {e}")
+        traceback.print_exc()
     finally:
         print("exiting...")

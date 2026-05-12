@@ -4,3 +4,4 @@ AUDIO/temp
 *.onnx
 piper/
 venv/
+__pycache__

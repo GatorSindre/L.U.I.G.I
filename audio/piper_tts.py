@@ -13,7 +13,7 @@ else:
     print(f"Language mode ( {settings.language_mode} ) is not valid -- Exiting script to avoid errors")
     exit()
 
-output_file = r"TTS\output.wav"
+output_file = r"temp\output.wav"
 
 def tts_generate(input_text):
     command = [
@@ -45,5 +45,3 @@ def play(text):
     sd.wait()
 
     print("TTS finished")
-
-print("Started TTS Engine")
