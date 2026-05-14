@@ -11,15 +11,18 @@ import sys
 import regex as re
 import traceback
 
-print("Imports Loaded")
+#TODO Remove keyboard after usage (from requirements too)
+import keyboard
 
 ## .py Imports
+from config import settings
+print("[IMPORTING] config loaded")
 from audio import whisper_stt
-print("whisper_stt loaded")
+print("[IMPORTING] whisper_stt loaded")
 from audio import piper_tts
-print("piper_tts loaded")
+print("[IMPORTING] piper_tts loaded")
 from audio import recorder
-print("recorder loaded")
+print("[IMPORTING] recorder loaded")
 
 ## Make sure console can handle emojis and such from L.U.I.G.I's responses
 sys.stdout.reconfigure(encoding='utf-8')
@@ -70,7 +73,7 @@ Assistant: You're welcome.
 """
 }
 
-MAX_MEMORY = 10
+MAX_MEMORY = settings.memory_limit
 
 short_term_memory = []
 
@@ -101,13 +104,35 @@ def short_term_memory_add(new_message):
 
 url = "http://localhost:11434/api/chat"
 
+#   Finding Ollama Model
+PREFERRED_MODELS = [
+    "qwen3:8b",
+    "llama3.2:3b",
+]
+
+def get_best_model():
+    installed = [m.model for m in ollama.list().models]
+
+    for model in PREFERRED_MODELS:
+        if model in installed:
+            return model
+
+    return None
+
+MODEL = get_best_model()
+
+if MODEL:
+    print(f"[OLLAMA] Using {MODEL}")
+else:
+    print("[OLLAMA] No compatible model installed")
+
 def build_prompt(user_input):
     messages = [system_prompt] + short_term_memory + [
         {"role": "user", "content": user_input}
     ]
 
     return {
-        "model": "qwen3:8b",
+        "model": MODEL,
         "messages": messages,
         "stream": True
     }
@@ -129,7 +154,7 @@ def New_AI_Message(input_text):
 
             if "message" in data and "content" in data["message"]:
                 token = data["message"]["content"]
-                print(token, end="", flush=True)
+                # print(token, end="", flush=True)
                 full_response += token
 
             if data.get("done"):
@@ -147,7 +172,7 @@ def New_AI_Message(input_text):
 
 ###     Create system to run checkup every __ seconds
 
-checkup_interval = 60 # In Seconds
+checkup_interval = settings.checkup_interval
 
 def checkup():
     ## Find out what user is doing TODO
@@ -163,8 +188,9 @@ def luigi_activate():
     ## Audio To Text
     input_text = whisper_stt.run()
     ## Talk to AI
-    print(f"Startet ai sequence med tekst: {input_text}")
+    print(f"[USER INPUT]: {input_text}")
     ai_response = New_AI_Message(input_text)
+    print(f"[AI OUTPUT] {ai_response}")
 
     # Filtrer response for dårlige ting til tts som emojier for eksempel
     filtered_response = clean_tts_text(ai_response)
@@ -181,7 +207,7 @@ def wake_listener():
 
     vosk_model = Model(r"vosk-models\vosk-model-small-en-us-0.15")
 
-    print("Vosk model loaded")
+    print("[VOSK] Model loaded")
 
     recognizer = KaldiRecognizer(vosk_model, 16000)
 
@@ -220,8 +246,6 @@ def main():
     # start wake word thread
     threading.Thread(target=wake_listener, daemon=True).start()
 
-    print("Main AI system running...")
-
     while True:
 
         # wait __ seconds or trigger wake event
@@ -231,7 +255,6 @@ def main():
             wake_event.clear()
             print("Running assistant")
             luigi_activate()
-
         else:
             print("Checkup triggered")
             checkup()
@@ -239,6 +262,10 @@ def main():
 # 1. Wake word i egen thread som endrer en variabel
 # 2. Loop som sjekker etter checkup og om wake word variabel er aktivert som da starter AI loop
 # 3. Streaming av ollama for å kunne abryte
+
+def on_key_press(event):
+    wake_event.set()
+keyboard.on_press_key("space", on_key_press)
 
 if __name__ == "__main__":
     try:

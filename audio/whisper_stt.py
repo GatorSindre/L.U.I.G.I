@@ -7,13 +7,8 @@ whisper_model = "medium"
 created_whisper_model = whisper.load_model(whisper_model)
 
 def run():
-    result = created_whisper_model.transcribe(r"temp\recording.wav", language=settings.language_mode)
-
-    print("-- Transcribed audio")
+    result = created_whisper_model.transcribe(r"temp/recording.wav", language=settings.language_mode)
 
     text = result["text"]
-
-    print(text)
-    print("")
 
     return text

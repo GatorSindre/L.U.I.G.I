@@ -3,11 +3,12 @@ import time
 import sounddevice as sd
 import numpy as np
 from scipy.io.wavfile import write
+from config import settings
 
 def start(
     filename="recording.wav",
     samplerate=16000,
-    threshold=20,
+    threshold=settings.silence_threshold,
     silence_duration=1.0,
     min_record_time=3.0,
     chunk_size=1024

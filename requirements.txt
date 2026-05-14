@@ -1,11 +1,13 @@
 openai-whisper
 vosk
 sounddevice
-numpy
+numpy==1.26.4
 scipy
 ollama
 requests
 pyttsx3
 regex
 openwakeword
-onnxruntime
+keyboard
+onnxruntime==1.16.1
+piper-tts
