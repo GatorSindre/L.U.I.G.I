@@ -3,8 +3,9 @@ class Settings:
         self.language_mode = "en"
         self.whisper_model = "medium"
         self.memory_limit = 10
-        self.silence_threshold= 100
+        self.silence_threshold= 500
         self.checkup_interval = 60  # In Seconds
+        self.show_mic_volume = True
 settings = Settings()
 
 ## TODO ADD THRESHOLD CALIBRATION   DESKTOP-HYBEL 20, LAPTOP 100

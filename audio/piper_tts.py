@@ -8,10 +8,6 @@ import wave
 import io
 import numpy as np
 
-def set_tts(value, reason=""):
-    settings.tts_enabled = value
-    print(f"[DEBUG] tts_enabled -> {value} | Reason: {reason}")
-
 ## Check folder exists
 os.makedirs("temp", exist_ok=True)
 
@@ -27,8 +23,6 @@ else:
 
 if not os.path.exists(model):
     print(f"[ERROR] Piper Model file not found: {model}")
-    print("[ERROR] Skipping TTS functionality")
-    set_tts(False, reason="Piper model file not found")
 
 output_file = r"temp/output.wav"
 
@@ -53,16 +47,12 @@ def generate(input_text): ## Uses old piper.exe via subprocess
         raise RuntimeError(f"Piper exited with code {process.returncode}")
 
 def play(input_text):
-    if not settings.tts_enabled:
-        print("[PIPER] TTS functionality is disabled, skipping play()")
-        return
 
     print("Generating TTS")
     try:
         generate(input_text)
     except Exception as e:
         print(f"[PIPER TTS ERROR] TTS generation failed: {e}")
-        set_tts(False, reason="TTS generation failed")
         return
 
     print("Loading TTS File")
@@ -70,7 +60,6 @@ def play(input_text):
         samplerate, data = read(output_file)
     except Exception as e:
         print(f"[PIPER TTS ERROR] Could not read TTS output file: {e}")
-        set_tts(False, reason="Failed to read TTS output file")
         return
     
     print("Playing TTS")

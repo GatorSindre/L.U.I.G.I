@@ -1,8 +1,5 @@
-import sounddevice as sd
-import queue
+import os
 import json
-from vosk import Model, KaldiRecognizer
-import numpy as np
 from scipy.io.wavfile import write
 import ollama
 import threading
@@ -10,6 +7,10 @@ import requests
 import sys
 import regex as re
 import traceback
+
+## Threads
+wake_event = threading.Event()
+
 
 #TODO Remove keyboard after usage (from requirements too)
 import keyboard
@@ -23,13 +24,30 @@ from audio import piper_tts
 print("[IMPORTING] piper_tts loaded")
 from audio import recorder
 print("[IMPORTING] recorder loaded")
+from threads import vosk
+print("[IMPORTING] vosk loaded")
 
 ## Make sure console can handle emojis and such from L.U.I.G.I's responses
 sys.stdout.reconfigure(encoding='utf-8')
 
 
-###     RECORD UNTIL SILENCE
+###     CLEANUP
 
+def clear_temp():
+    temp_folder = "temp"
+
+    # Make sure folder exists
+    if not os.path.exists(temp_folder):
+        return
+
+    # Remove all files
+    for file in os.listdir(temp_folder):
+        file_path = os.path.join(temp_folder, file)
+
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    print("Temp folder cleared.")
 
 ###     Function to clear out characters for tts
 
@@ -198,53 +216,11 @@ def luigi_activate():
     piper_tts.play(filtered_response)
 
 
-###     WAKEUP WORD LOW RAM AI THREAD
-
-wake_event = threading.Event()
-
-def wake_listener():
-    q = queue.Queue()
-
-    vosk_model = Model(r"vosk-models\vosk-model-small-en-us-0.15")
-
-    print("[VOSK] Model loaded")
-
-    recognizer = KaldiRecognizer(vosk_model, 16000)
-
-    def callback(indata, frames, time, status):
-        q.put(bytes(indata))
-
-    with sd.RawInputStream(
-        samplerate=16000,
-        blocksize=8000,
-        dtype="int16",
-        channels=1,
-        callback=callback
-    ):
-
-        print("Listening for wake word...")
-
-        while True:
-            data = q.get()
-
-            if recognizer.AcceptWaveform(data):
-
-                try:
-                    result = json.loads(recognizer.Result())
-                    text = result.get("text", "")
-                except Exception as e:
-                    print(f"Wake JSON error: {e}")
-
-                if text:
-                    if "luigi" in text:
-                        print("- Wake Up Word")
-                        sd.stop()
-                        wake_event.set()
-
 ## MAIN LOOP
 def main():
     # start wake word thread
-    threading.Thread(target=wake_listener, daemon=True).start()
+    threading.Thread(
+    target=vosk.wake_listener,args=(wake_event,),daemon=True).start()
 
     while True:
 
@@ -273,4 +249,5 @@ if __name__ == "__main__":
     except Exception as e:
         traceback.print_exc()
     finally:
+        clear_temp()
         print("exiting...")

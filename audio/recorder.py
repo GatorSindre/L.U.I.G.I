@@ -39,6 +39,9 @@ def start(
 
             volume = np.abs(audio_chunk).mean()
 
+            if settings.show_mic_volume:
+                print(f"Mic Volume: {volume:.2f}")
+
             if volume < threshold:
                 silent_chunks += 1
             else:
