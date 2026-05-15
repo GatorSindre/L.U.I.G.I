@@ -1,4 +1,8 @@
 import ollama
+import requests
+from ai import memory
+import json
+
 
 ###     Ollama Oppstart og response systemm
 
@@ -11,7 +15,12 @@ PREFERRED_MODELS = [
 ]
 
 def get_best_model():
-    installed = [m.model for m in ollama.list().models]
+    try:
+        installed = [m.model for m in ollama.list().models]
+    except Exception as e:
+        print(f"[OLLAMA ERROR] Could not connect to Ollama API: {e}")
+        print("[OLLAMA ERROR] Make sure Ollama is running")
+        exit()
 
     for model in PREFERRED_MODELS:
         if model in installed:
@@ -27,7 +36,7 @@ else:
     print("[OLLAMA] No compatible model installed")
 
 def build_prompt(user_input):
-    messages = [system_prompt] + short_term_memory + [
+    messages = [memory.system_prompt] + memory.short_term + [
         {"role": "user", "content": user_input}
     ]
 
@@ -54,17 +63,17 @@ def New_AI_Message(input_text):
 
             if "message" in data and "content" in data["message"]:
                 token = data["message"]["content"]
-                print(token, end="", flush=True)
+                # print(token, end="", flush=True)
                 full_response += token
 
             if data.get("done"):
                 break
 
     # Add user message to memory
-    short_term_memory_add({"role": "user", "content": input_text})
+    memory.short_term_add({"role": "user", "content": input_text})
 
     # add assistant reply to memory
-    short_term_memory_add({"role": "assistant", "content": full_response})
+    memory.short_term_add({"role": "assistant", "content": full_response})
 
     print("\n")
 

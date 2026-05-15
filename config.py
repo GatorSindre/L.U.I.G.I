@@ -8,6 +8,9 @@ class Settings:
         self.show_mic_volume = True
 settings = Settings()
 
+## TODO Legg til slik at alt av ai som whisper, piper og ollama kjører en gang slikt at det går raskere neste gang.
+
+
 ## TODO ADD THRESHOLD CALIBRATION   DESKTOP-HYBEL 20, LAPTOP 100
 ## Have checkup listen to noise and set threshold accordingly
 
@@ -28,3 +31,18 @@ settings = Settings()
 
 #TODO
 ## Make whisper run with my gpu and not cpu
+
+
+""" # USE This to check for event as a variable instead of waiting for x seconds
+if wake_event.is_set():
+        wake_event.clear()
+        print("Running assistant")
+        luigi_activate()
+"""
+
+
+
+## TODO
+# Add en funksjon slik at AI-en kan bli spurt om å huske noe. Deretter generer den mange kanskje sånn 20 keywords 
+# om den tingen og legger det i minnet sånn at senere automatisk hver gang jeg spør om noe vil mitt program mate ai-en med
+# De viktigste minnene ettersom hva jeg spurte om var via søking av keyword.
