@@ -7,7 +7,6 @@ import traceback
 ## Threads
 wake_event = threading.Event()
 
-
 #TODO Remove keyboard after usage (from requirements too)
 import keyboard
 
