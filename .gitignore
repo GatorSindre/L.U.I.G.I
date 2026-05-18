@@ -1,6 +1,7 @@
 vosk-models/
 AUDIO/temp
-*.wav
+recording.wav
+output.wav
 *.onnx
 piper/
 venv/
