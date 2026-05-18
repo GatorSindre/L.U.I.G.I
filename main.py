@@ -3,28 +3,32 @@ from scipy.io.wavfile import write
 import threading
 import sys
 import traceback
+import time
 
-## Threads
-wake_event = threading.Event()
-
-#TODO Remove keyboard after usage (from requirements too)
-import keyboard
-
-## .py Imports
-from config import settings
-print("[IMPORTING] config loaded")
+## FROM AUDIO
 from audio import whisper_stt
 print("[IMPORTING] whisper_stt loaded")
 from audio import piper_tts
 print("[IMPORTING] piper_tts loaded")
 from audio import recorder
 print("[IMPORTING] recorder loaded")
-from threads import vosk
-print("[IMPORTING] vosk loaded")
+
+## FROM AI
 from ai import memory
 print("[IMPORTING] memory loaded")
+from ai import ollama_interface
+print("[IMPORTING] ollama loaded")
 from ai import brain
 print("[IMPORTING] brain loaded")
+
+## FROM THREADS
+from threads import vosk
+print("[IMPORTING] vosk loaded")
+
+## FROM MISCELLANEOUS
+from config import settings
+print("[IMPORTING] config loaded")
+
 
 ## Make sure console can handle emojis and such from L.U.I.G.I's responses
 sys.stdout.reconfigure(encoding='utf-8')
@@ -45,7 +49,7 @@ def clear_temp():
         if os.path.isfile(file_path):
             os.remove(file_path)
 
-    print("Temp folder cleared.")
+    print("[CLEANUP] Temp folder wiped")
 
 ###     Create system to run checkup every __ seconds
 
@@ -55,34 +59,32 @@ def checkup():
     ## Find out what user is doing TODO
     ## Evaluate if its necessary to do something
     # Her skal sjekking fungere og spørring om jeg har husket diverse ting og slik
-    True
+    pass
 
 ## MAIN LOOP
 def main():
-    # start wake word thread
+    # start speech detection thread
     threading.Thread(
-    target=vosk.wake_listener,args=(wake_event,),daemon=True).start()
+    target=vosk.speak_detection,args=(),daemon=True).start()
 
+    ## Run a Systems Test
+    print(f"[SYSTEM TEST - OLLAMA] {ollama_interface.test()}")
+    print(f"[SYSTEM TEST - WHISPER] {whisper_stt.test()}")
+    piper_tts.test()
+    print(f"[SYSTEM TEST - PIPER] Done")
+
+    ## Keybind loop to activate AI
+    import keyboard
     while True:
+        start_keybind = "d"
+        print(f"------------ Enable AI by pressing {start_keybind}")
+        keyboard.wait(start_keybind)
 
-        # wait __ seconds or trigger wake event
-        triggered = wake_event.wait(timeout=checkup_interval)
-
-        if triggered:
-            wake_event.clear()
-            print("Running assistant")
-            brain.luigi_activate()
-        else:
-            print("Checkup triggered")
-            checkup()
-
-# 1. Wake word i egen thread som endrer en variabel
-# 2. Loop som sjekker etter checkup og om wake word variabel er aktivert som da starter AI loop
-# 3. Streaming av ollama for å kunne abryte
-
-def on_key_press(event):
-    wake_event.set()
-keyboard.on_press_key("space", on_key_press)
+        ## ACTIVATION EVENT
+        settings.vosk_on = True
+        while not settings.recording_ready:
+            time.sleep(0.05)
+        brain.luigi_activate()
 
 if __name__ == "__main__":
     try:

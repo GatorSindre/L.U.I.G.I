@@ -12,3 +12,12 @@ def run():
     text = result["text"]
 
     return text
+
+def test(): 
+    ## FORCES ENGLISH BECAUSE OF SAMPLED TEST 
+    #TODO Make two sample files and let it switch between depending on language mode
+    result = created_whisper_model.transcribe(r"sample_test/recording.wav", language="en")
+
+    text = result["text"]
+
+    return text

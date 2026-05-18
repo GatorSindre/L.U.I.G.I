@@ -1,16 +1,16 @@
-### WAKEUP WORD LOW RAM AI THREAD
-
+###     WAKEUP WORD LOW RAM AI THREAD
 import json
 import queue
 from vosk import Model, KaldiRecognizer
 import sounddevice as sd
 import time
 
-last_trigger = 0
+from audio import recorder
+from config import settings
 
-def wake_listener(wake_event):
+def speak_detection():
     global last_trigger
-
+    
     q = queue.Queue()
 
     vosk_model = Model(r"vosk-models\vosk-model-small-en-us-0.15")
@@ -21,10 +21,7 @@ def wake_listener(wake_event):
 
     last_partial = ""
 
-    def callback(indata, frames, time_info, status):
-        if status:
-            print(status)
-
+    def callback(indata, frames, time_value, status):
         q.put(bytes(indata))
 
     with sd.RawInputStream(
@@ -34,46 +31,52 @@ def wake_listener(wake_event):
         channels=1,
         callback=callback
     ):
-
-        print("Listening for wake word...")
-
         while True:
-            data = q.get()
+            while not settings.vosk_on:
+                time.sleep(0.5)
 
-            # FINALIZED SENTENCE
-            if recognizer.AcceptWaveform(data):
+            print("[VOSK] ENABLED")
 
-                try:
-                    result = json.loads(recognizer.Result())
-                    text = result.get("text", "").strip()
+            last_sound = False ## MAKE SURE THIS VARIABLE IS ONLY EVER FALSE OR time.time() value
 
-                    if text:
-                        print(f"[FINAL] {text}")
+            while settings.vosk_on:
+                data = q.get(timeout=0.5)
 
-                except Exception as e:
-                    print(f"Wake JSON error: {e}")
+                if last_sound != False and (time.time() - last_sound > 2):
+                    print("------  FINISHED SPEAKING")
+                    last_sound = False
+                    settings.user_speaking = False
+                    recorder.stop()
 
-            # LIVE STREAMING WORDS
-            else:
+                    # Give a little minimun buffer for the recording to save so we dont start another recording instantly
+                    time.sleep(0.4)
 
-                try:
+                # SENTENCE
+                if recognizer.AcceptWaveform(data):
+                    try:
+                        result = json.loads(recognizer.Result())
+                        text = result.get("text", "").strip()
+
+                        if text:
+                            # print(f"[VOSK] SENTENCE: {text}")
+                            last_sound = time.time()
+                    except Exception as e:
+                        print(f"Wake JSON error: {e}")
+
+                # WORD
+                else:
                     partial = json.loads(recognizer.PartialResult())
+
                     text = partial.get("partial", "").strip()
+                    
+                    # print(f"[VOSK]: WORD: {text}")
 
-                    # Only print if changed
-                    if text and text != last_partial:
-                        last_partial = text
+                    if text and settings.user_speaking == False:
+                        print("---------------  SPEAKING")
+                        settings.user_speaking = True
+                        recorder.start()
 
-                        print(f"[PARTIAL] {text}")
+                    if text and last_sound != False:
+                        last_sound = time.time()
 
-                        # Wake word detection
-                        if "luigi" in text:
-                            if time.time() - last_trigger > 2:
-
-                                print("[WAKE WORD DETECTED]")
-
-                                wake_event.set()
-                                last_trigger = time.time()
-
-                except Exception as e:
-                    print(f"Partial JSON error: {e}")
+            # CODE AFTER CLOSING VOSK

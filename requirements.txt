@@ -10,3 +10,9 @@ openwakeword
 piper-tts
 keyboard
 soundfile
+
+# TESTING
+openwakeword 
+numpy
+pyaudio 
+argparse

@@ -69,3 +69,23 @@ def play(input_text):
     sd.wait()
 
     print("TTS finished")
+
+def test():
+    sample_file = r"sample_test/output.wav"
+    
+    command = [
+        piper_exe,
+        "--model", model,
+        "--output_file", sample_file
+    ]
+
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.PIPE,
+        text=True
+    ) 
+
+    process.communicate("Tesing piper.")
+
+    if process.returncode != 0:
+        raise RuntimeError(f"Piper exited with code {process.returncode}")

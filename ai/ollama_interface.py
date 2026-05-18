@@ -3,32 +3,14 @@ import requests
 from ai import memory
 import json
 
+from config import settings
+
 
 ###     Ollama Oppstart og response systemm
 
 url = "http://localhost:11434/api/chat"
 
-#   Finding Ollama Model
-PREFERRED_MODELS = [
-    "qwen3:8b",
-    "llama3.2:3b",
-]
-
-def get_best_model():
-    try:
-        installed = [m.model for m in ollama.list().models]
-    except Exception as e:
-        print(f"[OLLAMA ERROR] Could not connect to Ollama API: {e}")
-        print("[OLLAMA ERROR] Make sure Ollama is running")
-        exit()
-
-    for model in PREFERRED_MODELS:
-        if model in installed:
-            return model
-
-    return None
-
-MODEL = get_best_model()
+MODEL = settings.ollama_model
 
 if MODEL:
     print(f"[OLLAMA] Using {MODEL}")
@@ -76,5 +58,38 @@ def New_AI_Message(input_text):
     memory.short_term_add({"role": "assistant", "content": full_response})
 
     print("\n")
+
+    return full_response
+
+
+def test():
+    test_prompt = "Say 'Ollama is working' and nothing else."
+
+    response = requests.post(
+        url,
+        json={
+            "model": MODEL,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": test_prompt
+                }
+            ],
+            "stream": True
+        },
+        stream=True
+    )
+
+    full_response = ""
+
+    for line in response.iter_lines():
+        if line:
+            data = json.loads(line.decode("utf-8"))
+
+            if "message" in data and "content" in data["message"]:
+                full_response += data["message"]["content"]
+
+            if data.get("done"):
+                break
 
     return full_response
