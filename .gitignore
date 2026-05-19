@@ -6,3 +6,4 @@ output.wav
 piper/
 venv/
 __pycache__
+*.zip

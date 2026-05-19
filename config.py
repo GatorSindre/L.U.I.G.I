@@ -14,7 +14,10 @@ class Settings:
 settings = Settings()
 
 ## CURRENT GOAL
-# Working in testing_env to make openwakeword work
+# Working in recorder.py to have recording work properly (learn how it works and make a buffer in ram)
+
+## TODO
+# Make everything stream to eachother so it goes faster. Recording streams to whisper, whisper, streams to ollama, ollama streams to piper
 
 ## TODO Legg til slik at alt av ai som whisper, piper og ollama kjører en gang slikt at det går raskere neste gang.
 

@@ -24,6 +24,7 @@ print("[IMPORTING] brain loaded")
 ## FROM THREADS
 from threads import vosk
 print("[IMPORTING] vosk loaded")
+from threads import openwakeword
 
 ## FROM MISCELLANEOUS
 from config import settings
@@ -79,6 +80,7 @@ def main():
         start_keybind = "d"
         print(f"------------ Enable AI by pressing {start_keybind}")
         keyboard.wait(start_keybind)
+        print(f"------------ Activated AI")
 
         ## ACTIVATION EVENT
         settings.vosk_on = True

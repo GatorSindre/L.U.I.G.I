@@ -8,10 +8,19 @@ from config import settings
 stream = None
 recording = []
 
+def callback(indata, frames, time, status):
+    recording.append(indata.copy())
+
 def start():
     global stream, recording
     recording = []
-    stream = sd.InputStream(...)
+    
+    stream = sd.InputStream(
+        samplerate=16000,
+        channels=1,
+        dtype='int16',
+        callback=callback
+    )
     stream.start()
 
 def stop(filename="recording.wav"):

@@ -31,7 +31,7 @@ parser.add_argument(
     "--model_path",
     help="The path of a specific model to load",
     type=str,
-    default="../openwakeword_models/hey_jarvis_v0.1.onnx",
+    default="openwakeword_models/hey_jarvis_v0.1.onnx",
     required=False
 )
 parser.add_argument(
