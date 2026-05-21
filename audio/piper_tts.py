@@ -3,7 +3,6 @@ from scipy.io.wavfile import read
 import sounddevice as sd
 from config import settings 
 import os
-from piper import PiperVoice
 import wave
 import io
 import numpy as np
@@ -26,8 +25,6 @@ if not os.path.exists(model):
 
 output_file = r"temp/output.wav"
 
-voice = PiperVoice.load(model)
-
 def generate(input_text): ## Uses old piper.exe via subprocess
     command = [
         piper_exe,
@@ -47,6 +44,10 @@ def generate(input_text): ## Uses old piper.exe via subprocess
         raise RuntimeError(f"Piper exited with code {process.returncode}")
 
 def play(input_text):
+
+    if not input_text:
+        print("[PIPER TTS ERROR] No text provided")
+        return
 
     print("Generating TTS")
     try:

@@ -12,7 +12,8 @@ url = "http://localhost:11434/api/chat"
 
 MODEL = settings.ollama_model
 
-if MODEL:
+## TODO Check here that ollama model exists
+if True:
     print(f"[OLLAMA] Using {MODEL}")
 else:
     print("[OLLAMA] No compatible model installed")
@@ -38,18 +39,35 @@ def New_AI_Message(input_text):
     # Make the request
     response = requests.post(url, json=payload, stream=True)
 
+    response.raise_for_status()
+
     # Wait for response and continusly print answer
     for line in response.iter_lines():
-        if line:
+        if not line:
+            continue
+        try:
             data = json.loads(line.decode("utf-8"))
+        except json.JSONDecodeError:
+            continue
 
-            if "message" in data and "content" in data["message"]:
-                token = data["message"]["content"]
-                # print(token, end="", flush=True)
-                full_response += token
+        if "error" in data:
+            print("[OLLAMA ERROR]", data["error"])
+            return ""
 
-            if data.get("done"):
-                break
+        msg = data.get("message", {})
+        token = msg.get("content", "")
+
+        if token:
+            full_response += token
+
+        if data.get("done"):
+            break
+
+    full_response = full_response.strip()
+
+    if not full_response:
+        print("[OLLAMA] Empty response received")
+        return ""
 
     # Add user message to memory
     memory.short_term_add({"role": "user", "content": input_text})

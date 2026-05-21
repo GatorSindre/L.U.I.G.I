@@ -9,7 +9,7 @@ class Settings:
         self.vosk_on = True
         self.user_speaking = False
         self.recording_ready = False
-        self.ollama_model = "llama3.2:3b"
+        self.ollama_model = "qwen3:8b"
         self.vosk_silence_wait = 1 # In Seconds
 settings = Settings()
 

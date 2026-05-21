@@ -25,6 +25,10 @@ def start():
 
 def stop(filename="recording.wav"):
     global stream, recording
+    
+    if stream is None:
+        return
+
     stream.stop()
     audio = np.concatenate(recording)
     write(os.path.join("temp", filename), 16000, audio)
